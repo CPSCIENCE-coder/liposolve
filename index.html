@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A state-of-the-art calculator for researchers and formulation scientists working on liposome encapsulation of small molecules. Core calculations, ratios, and live PubChem characterization.">
+    <title>LipoSolve | Liposome Encapsulation & Formulation Studio</title>
+    
+    <!-- Premium Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js for beautiful live data visuals -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        
+        <!-- Header Section -->
+        <header class="app-header">
+            <div class="brand">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 100 100" class="liposome-svg">
+                        <circle cx="50" cy="50" r="40" class="outer-bilayer" />
+                        <circle cx="50" cy="50" r="28" class="inner-bilayer" />
+                        <circle cx="50" cy="50" r="12" class="drug-core" />
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1>LipoSolve Studio</h1>
+                    <p class="subtitle">Premium Liposome Encapsulation & Formulation Platform</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="reset-btn" class="btn-secondary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                    Reset Studio
+                </button>
+                <button id="export-btn" class="btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                    Export Lab Report
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="app-workspace">
+            
+            <!-- Left Side: Inputs Panel -->
+            <section class="panel-inputs glass-card">
+                <div class="panel-header">
+                    <h2><span class="step-num">1</span> Formulation Inputs</h2>
+                    <span class="badge">Active Workspace</span>
+                </div>
+                
+                <!-- Section A: Drug Characterization -->
+                <div class="input-section glass-inset-card">
+                    <div class="section-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m10.5 20.5 10-10a4.95 4.95 0 0 0-7-7l-10 10a4.95 4.95 0 0 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>
+                        <h3>Small-Molecule Drug Specification</h3>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group col-full">
+                            <label for="drug-search">Search Drug Name or Enter SMILES</label>
+                            <div class="search-input-wrapper">
+                                <input type="text" id="drug-search" placeholder="e.g., Doxorubicin, Paclitaxel, or C1CO1..." autocomplete="off">
+                                <button id="fetch-pubchem-btn" class="btn-input-action" type="button" title="Fetch properties from PubChem">
+                                    <span id="btn-text">Fetch Properties</span>
+                                    <div class="spinner hidden" id="fetch-spinner"></div>
+                                </button>
+                            </div>
+                            <small class="helper-text">Searches PubChem PUG REST API for chemical data automatically.</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row grid-2-col">
+                        <div class="form-group">
+                            <label for="drug-name">Drug Common Name</label>
+                            <input type="text" id="drug-name" placeholder="Drug Name">
+                        </div>
+                        <div class="form-group">
+                            <label for="drug-mw">Molecular Weight (g/mol)</label>
+                            <input type="number" id="drug-mw" placeholder="e.g., 543.52" step="0.01" min="0.1">
+                        </div>
+                    </div>
+
+                    <div class="form-row grid-2-col">
+                        <div class="form-group">
+                            <label for="drug-smiles">SMILES string (Optional)</label>
+                            <input type="text" id="drug-smiles" placeholder="e.g., CC1=C(C(=O)C(=C(C1=O)OC)C)OC...">
+                        </div>
+                        <div class="form-group">
+                            <label for="drug-conc">Active Concentration (mg/mL)</label>
+                            <input type="number" id="drug-conc" placeholder="e.g., 1.50" step="0.01" min="0" value="1.00">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section B: Liposome Calculation Mode & Grid -->
+                <div class="input-section glass-inset-card margin-top-lg">
+                    <div class="section-title-between">
+                        <div class="section-title">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                            <h3>Lipid Matrix Composition</h3>
+                        </div>
+                    </div>
+
+                    <!-- Mode Toggle Selector -->
+                    <div class="mode-selector-container">
+                        <span class="mode-label">Calculation Model:</span>
+                        <div class="mode-toggle-group">
+                            <button class="mode-tab active" data-mode="direct" id="mode-direct-btn">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 17v-5M15 17V7"/></svg>
+                                Direct Concentration
+                            </button>
+                            <button class="mode-tab" data-mode="composition" id="mode-comp-btn">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83M22 12A10 10 0 0 0 12 2v10z"/></svg>
+                                Percent Composition
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Lipid Formulation Table -->
+                    <div class="table-scroll-container">
+                        <table class="lipid-form-table mode-direct" id="lipid-table">
+                            <thead>
+                                <tr>
+                                    <th class="col-lipid">Lipid Component</th>
+                                    <th class="col-mw">MW (g/mol)</th>
+                                    <th class="col-pct">Molar % (mol%)</th>
+                                    <th class="col-ref">Ref</th>
+                                    <th class="col-conc">Conc (mg/mL)</th>
+                                    <th class="col-actions"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="lipid-tbody">
+                                <!-- Lipid Rows populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="lipid-actions-row">
+                        <button id="add-lipid-btn" class="btn-text-action">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5v14"/></svg>
+                            Add Lipid Component
+                        </button>
+                        <span id="lipid-count-badge" class="count-badge">2 of 4 components</span>
+                    </div>
+
+                    <!-- Warning Alert Banner -->
+                    <div id="alert-banner" class="alert-banner hidden">
+                        <div class="alert-content">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="alert-icon"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            <span id="alert-message">Percent compositions must sum exactly to 100% to finalize computations.</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Right Side: Outputs Panel -->
+            <section class="panel-outputs glass-card">
+                <div class="panel-header">
+                    <h2><span class="step-num">2</span> Analysis & Formulation Results</h2>
+                    <span class="badge success" id="status-badge">Live Calculating</span>
+                </div>
+
+                <!-- Core Metric Cards Grid -->
+                <div class="metrics-grid">
+                    <div class="metric-card glass-inset-card flex-1">
+                        <span class="metric-title">Drug Molar Conc</span>
+                        <div class="metric-value-container">
+                            <span class="metric-number" id="drug-molar-conc">-</span>
+                            <span class="metric-unit">mM</span>
+                        </div>
+                        <p class="metric-desc">Molarity of the encapsulated drug molecule.</p>
+                    </div>
+
+                    <div class="metric-card glass-inset-card flex-1">
+                        <span class="metric-title">Total Lipid Molar Conc</span>
+                        <div class="metric-value-container">
+                            <span class="metric-number" id="total-lipid-molar">-</span>
+                            <span class="metric-unit">mM</span>
+                        </div>
+                        <p class="metric-desc">Summed molarity of all lipids in the mixture.</p>
+                    </div>
+
+                    <div class="metric-card glass-inset-card flex-1">
+                        <span class="metric-title">Total Lipid Mass Conc</span>
+                        <div class="metric-value-container">
+                            <span class="metric-number" id="total-lipid-mass">-</span>
+                            <span class="metric-unit">mg/mL</span>
+                        </div>
+                        <p class="metric-desc">Summed mass of all lipid formulation elements.</p>
+                    </div>
+                </div>
+
+                <div class="metrics-grid margin-top-md">
+                    <!-- Ratio Outputs -->
+                    <div class="metric-card ratio-card drug-lipid-weight glass-inset-card">
+                        <span class="metric-title">Drug : Total Lipid (w/w)</span>
+                        <div class="ratio-display">
+                            <div class="metric-value-container">
+                                <span class="metric-number font-md" id="ratio-ww">-</span>
+                                <span class="ratio-decimal-badge" id="ratio-ww-decimal"></span>
+                            </div>
+                            <div class="ratio-progress-bar bg-ww-bar">
+                                <div id="bar-ww-fill" class="ratio-fill" style="width: 0%;"></div>
+                            </div>
+                            <span class="ratio-sub-text" id="ratio-ww-text">Ratio in mg drug per mg lipid</span>
+                        </div>
+                    </div>
+
+                    <div class="metric-card ratio-card drug-lipid-molar glass-inset-card">
+                        <span class="metric-title">Drug : Total Lipid (mol/mol)</span>
+                        <div class="ratio-display">
+                            <div class="metric-value-container">
+                                <span class="metric-number font-md" id="ratio-mol">-</span>
+                                <span class="ratio-decimal-badge" id="ratio-mol-decimal"></span>
+                            </div>
+                            <div class="ratio-progress-bar bg-mol-bar">
+                                <div id="bar-mol-fill" class="ratio-fill" style="width: 0%;"></div>
+                            </div>
+                            <span class="ratio-sub-text" id="ratio-mol-text">Ratio in moles drug per mole lipid</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visuals and Data Breakdown Split Grid -->
+                <div class="analysis-split grid-2-col margin-top-lg">
+                    <!-- Chart Section -->
+                    <div class="chart-container-wrapper glass-inset-card flex-column align-center justify-center">
+                        <span class="chart-header-title">Lipid Composition Chart</span>
+                        <div class="chart-canvas-box">
+                            <canvas id="compositionChart"></canvas>
+                        </div>
+                        <div class="chart-legend-subtitle" id="chart-basis-label">Displaying Molar % Composition</div>
+                    </div>
+
+                    <!-- Breakdown Table Section -->
+                    <div class="breakdown-table-wrapper glass-inset-card">
+                        <span class="chart-header-title block">Component Formulation Breakdown</span>
+                        <div class="table-scroll-container">
+                            <table class="lipid-breakdown-table">
+                                <thead>
+                                    <tr>
+                                        <th>Component</th>
+                                        <th>Conc</th>
+                                        <th>Molar</th>
+                                        <th>Mole %</th>
+                                        <th>Wt %</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="breakdown-tbody">
+                                    <!-- Populated in JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <!-- Lab Footer -->
+        <footer class="app-footer">
+            <p>&copy; 2026 LipoSolve Studio. Scientific Formulation Tool designed for Liposome Synthesis. PUG REST API data courtesy of PubChem (NCBI/NLM).</p>
+        </footer>
+    </div>
+    <!-- Application Logic -->
+    <script src="app.js"></script>
+</body>
+</html>
