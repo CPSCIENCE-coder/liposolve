@@ -26,10 +26,10 @@ const THEME_COLORS = [
 let appState = {
     mode: 'direct', // 'direct' or 'composition'
     drug: {
-        name: 'Doxorubicin HCl',
-        mw: 579.98,
-        smiles: 'CC1C(C(CC(O1)OC2CC(CC3=C(C(=C4C(=C23)C(=O)C5=C(C4=O)C(=CC=C5)OC)O)O)(C(=O)CO)O)N)O.Cl',
-        conc: 2.0
+        name: '',
+        mw: '',
+        smiles: '',
+        conc: ''
     },
     lipids: [
         { key: 'DSPC', name: 'DSPC', mw: 790.16, pct: 55.0, conc: 5.5, isRef: true },
@@ -805,15 +805,15 @@ function updateCompositionChart(labels, dataValues) {
     });
 }
 
-// Reset Studio to standard Doxorubicin liposome formulation
+// Reset Studio to clean formulation state
 function resetStudio() {
     appState = {
         mode: 'direct',
         drug: {
-            name: 'Doxorubicin HCl',
-            mw: 579.98,
-            smiles: 'CC1C(C(CC(O1)OC2CC(CC3=C(C(=C4C(=C23)C(=O)C5=C(C4=O)C(=CC=C5)OC)O)O)(C(=O)CO)O)N)O.Cl',
-            conc: 2.0
+            name: '',
+            mw: '',
+            smiles: '',
+            conc: ''
         },
         lipids: [
             { key: 'DSPC', name: 'DSPC', mw: 790.16, pct: 55.0, conc: 5.5, isRef: true },
