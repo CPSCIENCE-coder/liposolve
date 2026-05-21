@@ -53,6 +53,16 @@ Ratios are computed to evaluate the loading efficiency of the liposome core:
 
 ---
 
+### Wet Lab Batch Preparation Weighing Calculator
+To facilitate the transition from theoretical calculation to physical execution, the LipoSolve Formulation Studio includes a dynamic batch weighing calculator.
+
+Given a target formulation batch volume ($V_{\text{batch}}$ in mL) and solved lipid mass concentrations ($C_i$ in mg/mL), the exact dry mass ($m_i$ in mg) of each lipid component required to weigh out on a balance is calculated as:
+$$m_i = C_i \times V_{\text{batch}} \quad (\text{mg})$$
+
+This ensures that the final mass concentration and relative molar distribution of all bilayer elements are maintained perfectly when preparing liquid liposome dispersions in the laboratory.
+
+---
+
 ## 🔬 Lipid Reference Directory
 
 The following industry-standard lipids are pre-coded for instant access:

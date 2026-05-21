@@ -36,7 +36,8 @@ let appState = {
         { key: 'Cholesterol', name: 'Cholesterol', mw: 386.65, pct: 30.0, conc: 3.0, isRef: false },
         { key: 'MPEG2K-DSPE', name: 'MPEG2K-DSPE', mw: 2805.5, pct: 15.0, conc: 1.5, isRef: false }
     ],
-    chartInstance: null
+    chartInstance: null,
+    lastSolvedLipids: []
 };
 
 // DOM Elements
@@ -75,6 +76,8 @@ const breakdownTbody = document.getElementById('breakdown-tbody');
 const chartBasisLabel = document.getElementById('chart-basis-label');
 const resetBtn = document.getElementById('reset-btn');
 const exportBtn = document.getElementById('export-btn');
+const weighVolumeInput = document.getElementById('weigh-volume');
+const weighingTbody = document.getElementById('weighing-tbody');
 
 // Initial Setup
 window.addEventListener('DOMContentLoaded', () => {
@@ -133,6 +136,13 @@ function bindEvents() {
     // Header buttons
     resetBtn.addEventListener('click', resetStudio);
     exportBtn.addEventListener('click', () => window.print());
+
+    // Weighing Calculator volume change listener
+    if (weighVolumeInput) {
+        weighVolumeInput.addEventListener('input', () => {
+            updateWeighingCalculator(appState.lastSolvedLipids);
+        });
+    }
 }
 
 function updateDrugInputsUI() {
@@ -676,6 +686,8 @@ function updateOutputsUI(totalMass, totalMolar, solvedLipids) {
 
         // Reset chart empty
         updateCompositionChart([], []);
+        appState.lastSolvedLipids = [];
+        updateWeighingCalculator([]);
         return;
     }
     
@@ -750,6 +762,10 @@ function updateOutputsUI(totalMass, totalMolar, solvedLipids) {
     chartBasisLabel.textContent = 'Displaying Molar % Composition';
         
     updateCompositionChart(labels, dataValues);
+
+    // 5. Update Weighing Calculator
+    appState.lastSolvedLipids = solvedLipids;
+    updateWeighingCalculator(solvedLipids);
 }
 
 // Chart.js Manager
@@ -835,4 +851,61 @@ function resetStudio() {
     updateDrugInputsUI();
     renderLipidTable();
     calculateAndRender();
+}
+
+/**
+ * Updates the Wet Lab Batch Preparation Weighing Calculator
+ * @param {Array} solvedLipids - Array of solved lipid components with conc, molePercent
+ */
+function updateWeighingCalculator(solvedLipids) {
+    if (!weighingTbody) return;
+
+    // Clear previous results
+    weighingTbody.innerHTML = '';
+
+    // Get current target volume
+    const volume = parseFloat(weighVolumeInput?.value);
+
+    // Validate if volume is a positive number and if solvedLipids exists
+    const isValidVolume = !isNaN(volume) && volume > 0;
+    const isValidFormulation = solvedLipids && solvedLipids.length > 0;
+
+    if (!isValidVolume || !isValidFormulation) {
+        // Fallback message
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = 4;
+        cell.style.textAlign = 'center';
+        cell.style.color = 'var(--text-muted)';
+        cell.style.padding = '20px 0';
+        
+        if (!isValidFormulation) {
+            cell.textContent = 'Please configure a valid lipid formulation to calculate weighing amounts.';
+        } else {
+            cell.textContent = 'Please enter a valid positive batch volume (mL).';
+        }
+        
+        row.appendChild(cell);
+        weighingTbody.appendChild(row);
+        return;
+    }
+
+    // Populate calculations
+    solvedLipids.forEach(lipid => {
+        const row = document.createElement('tr');
+        
+        // Calculate dry mass to weigh out (mg)
+        const massToWeigh = lipid.conc * volume;
+
+        row.innerHTML = `
+            <td><strong>${lipid.name}</strong></td>
+            <td>${lipid.conc.toFixed(3)} mg/mL</td>
+            <td>${lipid.molePercent.toFixed(2)} %</td>
+            <td class="col-weigh-amount">
+                <span class="weigh-amount-highlight">${massToWeigh.toFixed(3)}</span>
+                <span class="weigh-unit-label">mg</span>
+            </td>
+        `;
+        weighingTbody.appendChild(row);
+    });
 }

@@ -557,12 +557,28 @@ td {
 .lipid-form-table.mode-direct .col-conc { width: 25%; }
 .lipid-form-table.mode-direct .col-actions { width: 10%; text-align: center; }
 
-.lipid-form-table.mode-comp .col-lipid { width: 28%; }
-.lipid-form-table.mode-comp .col-mw { width: 15%; }
+.lipid-form-table.mode-comp .col-lipid { width: 26%; }
+.lipid-form-table.mode-comp .col-mw { width: 19%; }
 .lipid-form-table.mode-comp .col-pct { width: 18%; }
-.lipid-form-table.mode-comp .col-ref { width: 10%; text-align: center; }
-.lipid-form-table.mode-comp .col-conc { width: 22%; }
-.lipid-form-table.mode-comp .col-actions { width: 7%; text-align: center; }
+.lipid-form-table.mode-comp .col-ref { width: 8%; text-align: center; }
+.lipid-form-table.mode-comp .col-conc { width: 24%; }
+.lipid-form-table.mode-comp .col-actions { width: 5%; text-align: center; }
+
+.lipid-form-table .col-mw input {
+    min-width: 85px;
+}
+
+.lipid-form-table .col-pct input {
+    min-width: 60px;
+}
+
+.lipid-form-table .col-conc input {
+    min-width: 85px;
+}
+
+.lipid-form-table .col-lipid select {
+    min-width: 95px;
+}
 
 .calc-conc-badge {
     font-size: 0.8rem;
@@ -633,7 +649,21 @@ td {
 }
 
 .lipid-form-table input[type="number"] {
-    padding: 6px 10px;
+    padding: 6px 8px;
+}
+
+/* Hide spin buttons inside lipid table & weighing table */
+.lipid-form-table input[type="number"]::-webkit-outer-spin-button,
+.lipid-form-table input[type="number"]::-webkit-inner-spin-button,
+.weighing-results-table input[type="number"]::-webkit-outer-spin-button,
+.weighing-results-table input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.lipid-form-table input[type="number"],
+.weighing-results-table input[type="number"] {
+    -moz-appearance: textfield;
 }
 
 /* Custom ref radio inside table */
@@ -1012,6 +1042,146 @@ td {
     animation: fadeIn 0.35s ease-out forwards;
 }
 
+/* Wet Lab Weighing Calculator styles */
+.weighing-calculator-container {
+    transition: var(--transition-smooth);
+}
+
+.weigh-scale-icon {
+    stroke: var(--color-success);
+    filter: drop-shadow(0 0 4px rgba(52, 211, 153, 0.2));
+}
+
+.weigh-volume-row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-top: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.weigh-volume-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-shrink: 0;
+    width: 200px;
+}
+
+.weigh-volume-input-group label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.weigh-volume-input-group .input-unit-wrapper {
+    display: flex;
+    align-items: center;
+    background-color: rgba(7, 10, 19, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: var(--transition-smooth);
+}
+
+.weigh-volume-input-group .input-unit-wrapper:focus-within {
+    border-color: var(--color-success);
+    box-shadow: 0 0 10px 0 rgba(52, 211, 153, 0.15);
+    background-color: rgba(7, 10, 19, 0.9);
+}
+
+.weigh-volume-input-group input[type="number"] {
+    border: none;
+    background: transparent;
+    padding: 10px 12px;
+    border-radius: 0;
+    width: 100%;
+}
+
+.weigh-volume-input-group input[type="number"]:focus {
+    box-shadow: none;
+    background: transparent;
+}
+
+.input-unit-label {
+    padding: 0 12px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.85rem;
+    background-color: rgba(255, 255, 255, 0.03);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    border-left: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.weigh-helper-text {
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.weighing-results-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.weighing-results-table th {
+    background-color: rgba(7, 10, 19, 0.8);
+}
+
+.weighing-results-table td {
+    background-color: rgba(13, 20, 38, 0.15);
+}
+
+.weighing-results-table th.col-weigh-amount,
+.weighing-results-table td.col-weigh-amount {
+    text-align: right;
+    padding-right: 24px;
+}
+
+.weigh-amount-highlight {
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-success);
+    text-shadow: 0 0 10px rgba(52, 211, 153, 0.25);
+    margin-right: 4px;
+}
+
+.weigh-unit-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.weighing-formula-text {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 12px;
+    font-style: italic;
+}
+
+.weighing-formula-text span {
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-style: normal;
+}
+
+@media (max-width: 600px) {
+    .weigh-volume-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    .weigh-volume-input-group {
+        width: 100%;
+    }
+}
+
 /* High-end print layout styles (lab sheet friendly) */
 @media print {
     body {
@@ -1160,5 +1330,74 @@ td {
     
     .app-footer p {
         color: #555555 !important;
+    }
+
+    /* Print styles for Weighing Calculator */
+    .weighing-calculator-container {
+        border: 1px solid #777777 !important;
+        background: #ffffff !important;
+        box-shadow: none !important;
+        margin-top: 20px !important;
+        page-break-inside: avoid;
+    }
+
+    .weigh-scale-icon {
+        stroke: #000000 !important;
+        filter: none !important;
+    }
+
+    .weigh-volume-row {
+        border-bottom: 1px solid #777777 !important;
+    }
+
+    .weigh-volume-input-group .input-unit-wrapper {
+        background-color: #ffffff !important;
+        border: 1px solid #777777 !important;
+    }
+
+    .weigh-volume-input-group input[type="number"] {
+        color: #000000 !important;
+        background: transparent !important;
+    }
+
+    .input-unit-label {
+        color: #000000 !important;
+        background-color: #f1f1f1 !important;
+        border-left: 1px solid #777777 !important;
+    }
+
+    .weigh-helper-text {
+        color: #333333 !important;
+    }
+
+    .weighing-results-table th {
+        background-color: #f1f1f1 !important;
+        color: #000000 !important;
+        border-bottom: 2px solid #777777 !important;
+    }
+
+    .weighing-results-table td {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border-bottom: 1px solid #cccccc !important;
+    }
+
+    .weigh-amount-highlight {
+        color: #000000 !important;
+        text-shadow: none !important;
+        font-weight: 800 !important;
+    }
+
+    .weigh-unit-label {
+        color: #000000 !important;
+        font-weight: 700 !important;
+    }
+
+    .weighing-formula-text {
+        color: #555555 !important;
+    }
+
+    .weighing-formula-text span {
+        color: #000000 !important;
     }
 }
