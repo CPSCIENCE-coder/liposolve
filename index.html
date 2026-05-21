@@ -125,6 +125,33 @@
                         </div>
                     </div>
 
+                    <!-- Anchor Selector (only active in Percent Composition mode) -->
+                    <div class="comp-type-container hidden" id="anchor-selector-container">
+                        <span class="mode-label">Anchor Calculations By:</span>
+                        <div class="comp-type-group">
+                            <label class="radio-label">
+                                <input type="radio" name="composition-anchor" value="reference" checked id="anchor-ref-radio">
+                                <span class="radio-custom"></span>
+                                <span>Reference Lipid</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="composition-anchor" value="total" id="anchor-total-radio">
+                                <span class="radio-custom"></span>
+                                <span>Total Lipid</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Total Lipid Concentration Input Field (only visible when Anchor By Total is selected) -->
+                    <div class="form-row hidden" id="total-lipid-input-group" style="margin-top: 12px; margin-bottom: 16px;">
+                        <div class="form-group col-full">
+                            <label for="total-lipid-conc-input">Target Total Lipid Concentration (mg/mL)</label>
+                            <input type="number" id="total-lipid-conc-input" placeholder="e.g., 10.0" step="0.1" min="0.01" value="10.0">
+                            <small class="helper-text">Defines the total concentration of all lipids. Individual lipid concentrations are calculated dynamically based on this value and molar percentages.</small>
+                        </div>
+                    </div>
+
+
                     <!-- Lipid Formulation Table -->
                     <div class="table-scroll-container">
                         <table class="lipid-form-table mode-direct" id="lipid-table">

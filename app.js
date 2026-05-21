@@ -25,6 +25,8 @@ const THEME_COLORS = [
 // App State
 let appState = {
     mode: 'direct', // 'direct' or 'composition'
+    compositionAnchor: 'reference', // 'reference' or 'total'
+    totalLipidConcInput: 10.0, // default total concentration in mg/mL
     drug: {
         name: '',
         mw: '',
@@ -78,6 +80,13 @@ const resetBtn = document.getElementById('reset-btn');
 const exportBtn = document.getElementById('export-btn');
 const weighVolumeInput = document.getElementById('weigh-volume');
 const weighingTbody = document.getElementById('weighing-tbody');
+
+// Anchor sub-selector DOM Elements
+const anchorSelectorContainer = document.getElementById('anchor-selector-container');
+const anchorRefRadio = document.getElementById('anchor-ref-radio');
+const anchorTotalRadio = document.getElementById('anchor-total-radio');
+const totalLipidInputGroup = document.getElementById('total-lipid-input-group');
+const totalLipidConcInput = document.getElementById('total-lipid-conc-input');
 
 // Initial Setup
 window.addEventListener('DOMContentLoaded', () => {
@@ -143,6 +152,33 @@ function bindEvents() {
             updateWeighingCalculator(appState.lastSolvedLipids);
         });
     }
+
+    // Anchor sub-selector listeners
+    if (anchorRefRadio && anchorTotalRadio) {
+        anchorRefRadio.addEventListener('change', () => setAnchor('reference'));
+        anchorTotalRadio.addEventListener('change', () => setAnchor('total'));
+    }
+    if (totalLipidConcInput) {
+        totalLipidConcInput.addEventListener('input', (e) => {
+            appState.totalLipidConcInput = parseFloat(e.target.value) || 0;
+            calculateAndRender();
+        });
+    }
+}
+
+function setAnchor(anchor) {
+    appState.compositionAnchor = anchor;
+    updateAnchorUI();
+    renderLipidTable();
+    calculateAndRender();
+}
+
+function updateAnchorUI() {
+    if (appState.compositionAnchor === 'reference') {
+        if (totalLipidInputGroup) totalLipidInputGroup.classList.add('hidden');
+    } else {
+        if (totalLipidInputGroup) totalLipidInputGroup.classList.remove('hidden');
+    }
 }
 
 function updateDrugInputsUI() {
@@ -161,6 +197,9 @@ function setMode(mode) {
         modeCompBtn.classList.remove('active');
         lipidTable.className = 'lipid-form-table mode-direct';
         
+        if (anchorSelectorContainer) anchorSelectorContainer.classList.add('hidden');
+        if (totalLipidInputGroup) totalLipidInputGroup.classList.add('hidden');
+        
         // Reset row concentrations to direct numbers
         appState.lipids.forEach((lipid, idx) => {
             lipid.conc = idx === 0 ? 5.5 : (idx === 1 ? 3.0 : 1.5);
@@ -169,6 +208,12 @@ function setMode(mode) {
         modeDirectBtn.classList.remove('active');
         modeCompBtn.classList.add('active');
         lipidTable.className = 'lipid-form-table mode-comp';
+        
+        if (anchorSelectorContainer) anchorSelectorContainer.classList.remove('hidden');
+        appState.compositionAnchor = 'reference';
+        if (anchorRefRadio) anchorRefRadio.checked = true;
+        if (anchorTotalRadio) anchorTotalRadio.checked = false;
+        updateAnchorUI();
         
         // Setup default reference lipid & targets for Mode B
         appState.lipids.forEach((lipid, idx) => {
@@ -356,30 +401,35 @@ function renderLipidTable() {
         // 4. Reference radio cell
         const refCell = document.createElement('td');
         refCell.className = 'col-ref';
-        const label = document.createElement('label');
-        label.className = 'ref-radio-label';
         
-        const radio = document.createElement('input');
-        radio.type = 'radio';
-        radio.name = 'reference-lipid';
-        radio.checked = lipid.isRef;
-        
-        radio.addEventListener('change', () => {
-            appState.lipids.forEach((l, lIdx) => {
-                l.isRef = lIdx === index;
+        if (appState.mode === 'composition' && appState.compositionAnchor === 'total') {
+            refCell.innerHTML = '<span style="color: var(--text-muted); display: block; text-align: center;">-</span>';
+        } else {
+            const label = document.createElement('label');
+            label.className = 'ref-radio-label';
+            
+            const radio = document.createElement('input');
+            radio.type = 'radio';
+            radio.name = 'reference-lipid';
+            radio.checked = lipid.isRef;
+            
+            radio.addEventListener('change', () => {
+                appState.lipids.forEach((l, lIdx) => {
+                    l.isRef = lIdx === index;
+                });
+                
+                // Re-render and calculate
+                renderLipidTable();
+                calculateAndRender();
             });
             
-            // Re-render and calculate
-            renderLipidTable();
-            calculateAndRender();
-        });
-        
-        const customRadioBtn = document.createElement('span');
-        customRadioBtn.className = 'ref-radio-btn';
-        
-        label.appendChild(radio);
-        label.appendChild(customRadioBtn);
-        refCell.appendChild(label);
+            const customRadioBtn = document.createElement('span');
+            customRadioBtn.className = 'ref-radio-btn';
+            
+            label.appendChild(radio);
+            label.appendChild(customRadioBtn);
+            refCell.appendChild(label);
+        }
         row.appendChild(refCell);
         
         // 5. Concentration cell
@@ -409,7 +459,7 @@ function renderLipidTable() {
 
             concCell.appendChild(wrapper);
         } else {
-            if (lipid.isRef) {
+            if (appState.compositionAnchor === 'reference' && lipid.isRef) {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'conc-input-wrapper';
                 
@@ -586,10 +636,6 @@ function calculateAndRender() {
         
     } else {
         // Molar Percentage Composition Mode Calculations
-        const refIndex = appState.lipids.findIndex(l => l.isRef);
-        if (refIndex === -1) return;
-        
-        // Sum all user-specified target percentages
         sumPercentages = appState.lipids.reduce((sum, l) => sum + l.pct, 0);
         
         // Validate percentages sum to exactly 100% (within tolerance)
@@ -598,57 +644,117 @@ function calculateAndRender() {
         if (!isSum100) {
             totalsValid = false;
             showErrorBanner(`Molar percentages must sum exactly to 100% (currently: ${sumPercentages.toFixed(2)}%). Adjust percentages to proceed.`);
-        } else if (appState.lipids.some(l => l.pct < 0 || (l.isRef && l.conc < 0))) {
+        } else if (appState.lipids.some(l => l.pct < 0 || (appState.compositionAnchor === 'reference' && l.isRef && l.conc < 0))) {
             totalsValid = false;
             showErrorBanner("Percentages and concentrations must be positive numbers.");
-        } else if (appState.lipids[refIndex].pct <= 0) {
+        } else if (appState.compositionAnchor === 'total' && appState.totalLipidConcInput <= 0) {
             totalsValid = false;
-            showErrorBanner("Reference lipid molar percentage must be greater than 0%.");
+            showErrorBanner("Total lipid concentration must be greater than 0 mg/mL.");
         }
         
         if (totalsValid) {
-            const refLipidState = appState.lipids[refIndex];
-            const refConc = refLipidState.conc; // Reference concentration (mg/mL)
-            const refPercent = refLipidState.pct; // Reference target Molar %
-            
-            // basis: Molar % (mol%)
-            // Molar conc of ref lipid (mM)
-            const refMolar = refLipidState.mw > 0 ? (refConc / refLipidState.mw) * 1000 : 0;
-            // Total molar concentration of all lipids (mM)
-            const totalMolar = refPercent > 0 ? (refMolar * 100) / refPercent : 0;
-            
-            solvedLipids.forEach((lipid, idx) => {
-                const pct = appState.lipids[idx].pct;
-                lipid.molePercent = pct;
-                lipid.molarConc = totalMolar * (pct / 100);
-                lipid.conc = (lipid.molarConc * lipid.mw) / 1000;
-            });
-            
-            const totalMass = solvedLipids.reduce((sum, l) => sum + l.conc, 0);
-            
-            solvedLipids.forEach(lipid => {
-                lipid.weightPercent = totalMass > 0 ? (lipid.conc / totalMass) * 100 : 0;
-            });
-            
-            // Write calculated concentrations back into read-only UI fields
-            solvedLipids.forEach((lipid, idx) => {
-                if (idx !== refIndex) {
-                    const cellBadge = document.getElementById(`calc-conc-badge-${idx}`);
-                    if (cellBadge) {
-                        cellBadge.textContent = `${lipid.conc.toFixed(3)} mg/mL`;
-                    }
+            if (appState.compositionAnchor === 'reference') {
+                const refIndex = appState.lipids.findIndex(l => l.isRef);
+                if (refIndex === -1) return;
+                
+                if (appState.lipids[refIndex].pct <= 0) {
+                    totalsValid = false;
+                    showErrorBanner("Reference lipid molar percentage must be greater than 0%.");
                 }
-            });
-            
-            updateOutputsUI(totalMass, totalMolar, solvedLipids);
+                
+                if (totalsValid) {
+                    const refLipidState = appState.lipids[refIndex];
+                    const refConc = refLipidState.conc; // Reference concentration (mg/mL)
+                    const refPercent = refLipidState.pct; // Reference target Molar %
+                    
+                    // basis: Molar % (mol%)
+                    // Molar conc of ref lipid (mM)
+                    const refMolar = refLipidState.mw > 0 ? (refConc / refLipidState.mw) * 1000 : 0;
+                    // Total molar concentration of all lipids (mM)
+                    const totalMolar = refPercent > 0 ? (refMolar * 100) / refPercent : 0;
+                    
+                    solvedLipids.forEach((lipid, idx) => {
+                        const pct = appState.lipids[idx].pct;
+                        lipid.molePercent = pct;
+                        lipid.molarConc = totalMolar * (pct / 100);
+                        lipid.conc = (lipid.molarConc * lipid.mw) / 1000;
+                    });
+                    
+                    const totalMass = solvedLipids.reduce((sum, l) => sum + l.conc, 0);
+                    
+                    solvedLipids.forEach(lipid => {
+                        lipid.weightPercent = totalMass > 0 ? (lipid.conc / totalMass) * 100 : 0;
+                    });
+                    
+                    // Write calculated concentrations back into read-only UI fields
+                    solvedLipids.forEach((lipid, idx) => {
+                        if (idx !== refIndex) {
+                            const cellBadge = document.getElementById(`calc-conc-badge-${idx}`);
+                            if (cellBadge) {
+                                cellBadge.textContent = `${lipid.conc.toFixed(3)} mg/mL`;
+                            }
+                        }
+                    });
+                    
+                    updateOutputsUI(totalMass, totalMolar, solvedLipids);
+                } else {
+                    // Nullify results and clear read-only badges
+                    appState.lipids.forEach((lipid, idx) => {
+                        if (!lipid.isRef) {
+                            const cellBadge = document.getElementById(`calc-conc-badge-${idx}`);
+                            if (cellBadge) {
+                                cellBadge.textContent = `- mg/mL`;
+                            }
+                        }
+                    });
+                    updateOutputsUI(0, 0, []);
+                }
+            } else {
+                // compositionAnchor === 'total'
+                const C_total = appState.totalLipidConcInput;
+                const weightedMWSum = appState.lipids.reduce((sum, l) => sum + (l.pct / 100) * l.mw, 0);
+                
+                if (weightedMWSum > 0) {
+                    const totalMolar = (C_total / weightedMWSum) * 1000;
+                    
+                    solvedLipids.forEach((lipid, idx) => {
+                        const pct = appState.lipids[idx].pct;
+                        lipid.molePercent = pct;
+                        lipid.molarConc = totalMolar * (pct / 100);
+                        lipid.conc = C_total * ((pct / 100) * lipid.mw) / weightedMWSum;
+                    });
+                    
+                    const totalMass = solvedLipids.reduce((sum, l) => sum + l.conc, 0);
+                    
+                    solvedLipids.forEach(lipid => {
+                        lipid.weightPercent = totalMass > 0 ? (lipid.conc / totalMass) * 100 : 0;
+                    });
+                    
+                    // Write calculated concentrations back into read-only UI fields for ALL rows
+                    solvedLipids.forEach((lipid, idx) => {
+                        const cellBadge = document.getElementById(`calc-conc-badge-${idx}`);
+                        if (cellBadge) {
+                            cellBadge.textContent = `${lipid.conc.toFixed(3)} mg/mL`;
+                        }
+                    });
+                    
+                    updateOutputsUI(totalMass, totalMolar, solvedLipids);
+                } else {
+                    appState.lipids.forEach((lipid, idx) => {
+                        const cellBadge = document.getElementById(`calc-conc-badge-${idx}`);
+                        if (cellBadge) {
+                            cellBadge.textContent = `- mg/mL`;
+                        }
+                    });
+                    updateOutputsUI(0, 0, []);
+                }
+            }
         } else {
             // Nullify results and clear read-only badges
             appState.lipids.forEach((lipid, idx) => {
-                if (!lipid.isRef) {
-                    const cellBadge = document.getElementById(`calc-conc-badge-${idx}`);
-                    if (cellBadge) {
-                        cellBadge.textContent = `- mg/mL`;
-                    }
+                const cellBadge = document.getElementById(`calc-conc-badge-${idx}`);
+                if (cellBadge) {
+                    cellBadge.textContent = `- mg/mL`;
                 }
             });
             updateOutputsUI(0, 0, []);
@@ -825,6 +931,8 @@ function updateCompositionChart(labels, dataValues) {
 function resetStudio() {
     appState = {
         mode: 'direct',
+        compositionAnchor: 'reference',
+        totalLipidConcInput: 10.0,
         drug: {
             name: '',
             mw: '',
@@ -845,6 +953,13 @@ function resetStudio() {
     
     // Reset table class name for direct mode
     lipidTable.className = 'lipid-form-table mode-direct';
+    
+    if (anchorSelectorContainer) anchorSelectorContainer.classList.add('hidden');
+    if (totalLipidInputGroup) totalLipidInputGroup.classList.add('hidden');
+    
+    if (anchorRefRadio) anchorRefRadio.checked = true;
+    if (anchorTotalRadio) anchorTotalRadio.checked = false;
+    if (totalLipidConcInput) totalLipidConcInput.value = '10.0';
     
     drugSearchInput.value = '';
     
